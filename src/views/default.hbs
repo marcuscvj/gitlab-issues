@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Gitlab Issues</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="bg-light">
+    <main role="main" class="container">
+        <div class="d-flex align-items-center p-3 my-3 text-white-50 bg-purple rounded shadow-sm"><img
+                src="img/gitlab.svg" alt="GitLab" width="48" height="48" class="mr-3">
+            <div class="lh-100"
+                <h6 class="mb-0 text-white lh-100">GitLab Issues</h6><small id="repository-link">Repository: </small>
+            </div>
+        </div>
+
+        <div class="row">
+
+            {{{body}}}
+
+        </div>
+
+    </main>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+
+    <script src='/socket.io/socket.io.js'></script>
+    <script type="text/javascript">
+        const socket = io()
+
+        socket.on('addInitialIssueData', function (data) {
+            addInitialIssueData(data)
+        })
+
+        socket.on('newIssue', function (data) {
+            addIssue(data)
+        })
+
+        socket.on('updateIssue', function (data) {
+            updateIssue(data)
+        })
+
+        socket.on('addNotification', function (data) {
+            addNotification(data)
+        })
+
+        function addNotification(data) {
+            // Text nodes
+            const usernameText = document.createTextNode(data.username + ' ')
+            const commentText = document.createTextNode(data.comment)
+            const eventText = document.createTextNode(data.note_text)
+            const descriptionText = document.createTextNode(data.short_desc)
+
+            // Avatar
+            const img = document.createElement('img')
+            img.classList.add('rounded', 'float-left')
+            img.setAttribute('src', data.author_avatar_url)
+            img.setAttribute('height', '40')
+            img.setAttribute('width', '40')
+
+            // Creation of elements
+            const strong = document.createElement('strong')
+            const span = document.createElement('span')
+            const p = document.createElement('p')
+            const br = document.createElement('br')
+            const em = document.createElement('em')
+
+            // Adding classes to created elements
+            strong.classList.add('text-gray-dark', 'mb-1')
+            p.classList.add('media-body', 'pb-3', 'mb-0', 'small', 'lh-125', 'border-bottom', 'border-gray', 'ml-2')
+            span.classList.add('clearfix')
+
+            // Adding text node to elements
+            strong.appendChild(usernameText)
+            span.appendChild(eventText)
+            em.appendChild(descriptionText)
+
+            // Adding element nodes to paragraph
+            p.appendChild(strong)
+            p.appendChild(span)
+
+            if (data.short_desc !== undefined) {
+                p.appendChild(em)
+            }
+
+            if (data.comment !== undefined) {
+                p.appendChild(commentText)
+            }
+
+            const newDiv = document.createElement('div')
+            newDiv.classList.add('media', 'text-muted', 'pt-1')
+
+            newDiv.appendChild(img)
+            newDiv.appendChild(p)
+
+            const div = document.getElementById('notifications')
+            div.insertBefore(newDiv, div.childNodes[0])
+        }
+        
+        function updateIssue(data) {
+            const div = document.getElementById('issue-' + data.id)
+            const changes = data.changes
+
+            for (const p in changes) {
+                if (p === 'title') {
+                    const titleElement = document.getElementById('issue-' + data.id).getElementsByClassName('issue-title')[0]
+                    titleElement.textContent = data.changes[p].current
+                }
+            }
+
+            if (data.state === 'opened') {
+                const stateBadge = document.getElementById('issue-' + data.id).getElementsByClassName('badge')[0]
+                stateBadge.textContent = data.state
+                stateBadge.classList.remove('badge-danger')
+                stateBadge.classList.add('badge-success')
+            } else if (data.state === 'closed') {
+                const stateBadge = document.getElementById('issue-' + data.id).getElementsByClassName('badge')[0]
+                stateBadge.textContent = data.state
+                stateBadge.classList.remove('badge-success')
+                stateBadge.classList.add('badge-danger')
+            }
+        }
+
+        function addIssue(data) {
+            if (data.state !== 'closed') {
+                // Text nodes
+                const titleText = document.createTextNode(data.title)
+                const idText = document.createTextNode('#' + data.id + ' ')
+                const statusText = document.createTextNode(data.state + ' by ')
+                const createdByText = document.createTextNode(data.username + ' ')
+                const numberOfCommentsText = document.createTextNode('with number of comments: ')
+                const numberOfCommentsCountText = document.createTextNode('0')
+                const stateText = document.createTextNode(data.state)
+
+                // Avatar
+                const img = document.createElement('img')
+                img.classList.add('rounded', 'float-left')
+                img.setAttribute('src', data.author_avatar_url)
+                img.setAttribute('height', '40')
+                img.setAttribute('width', '40')
+
+                const p1 = document.createElement('p')
+                p1.classList.add('media-body', 'pb-3', 'mb-0', 'small', 'lh-125', 'border-bottom', 'border-gray', 'ml-2')
+
+                // Strong elements
+                const strong = document.createElement('strong')
+                const strong2 = document.createElement('strong')
+                const strong3 = document.createElement('strong')
+                const br = document.createElement('br')
+
+                const span = document.createElement('span')
+                span.classList.add('comments-count')
+                span.appendChild(numberOfCommentsCountText)
+
+                const span2 = document.createElement('span')
+
+                if (data.state === 'opened') {
+                    span2.classList.add('badge', 'badge-success')
+                } else if (data.state === 'closed') {
+                    span2.classList.add('badge', 'badge-danger')
+                } else {
+                    span2.classList.add('badge', 'badge-info')
+                }
+
+                span2.classList.add('clearfix', 'ml-1')
+                span2.appendChild(stateText)
+
+                strong.classList.add('issue-title', 'text-gray-dark', 'mb-1')
+                strong2.classList.add('text-gray-dark')
+                br.classList.add('mb-1')
+
+                strong.appendChild(titleText)
+                strong2.appendChild(createdByText)
+
+                // Appending elements to P element
+                p1.appendChild(strong)
+                p1.appendChild(span2)
+                p1.appendChild(br)
+                p1.appendChild(idText)
+                p1.appendChild(statusText)
+                p1.appendChild(createdByText)
+                p1.appendChild(numberOfCommentsText)
+                p1.appendChild(span)
+
+                const newDiv = document.createElement('div')
+                newDiv.id = 'issue-' + data.id
+                newDiv.classList.add('media', 'text-muted', 'pt-3')
+                newDiv.appendChild(img)
+                newDiv.appendChild(p1)
+
+                const issuesDiv = document.getElementById('issues')
+                issuesDiv.insertBefore(newDiv, issuesDiv.childNodes[0])
+            }
+        }
+
+        function addInitialIssueData(data) {
+            // Adding the repository link , dont work properly
+            const repoName = data[0].web_url
+            const repoLink = repoName.split('/issues/')[0].replace(/(^\w+:|^)\/\//, '')
+            const repoUrl = repoName.split('/issues/')[0]
+
+            const repositoryText = document.createTextNode(repoLink)
+            const repositoryAElement = document.createElement('a')
+            const repositoryTextElement = document.getElementById('repository-link')
+
+            repositoryAElement.appendChild(repositoryText)
+            repositoryAElement.setAttribute('href', repoUrl)
+            repositoryAElement.classList.add('text-white-50')
+            repositoryAElement.setAttribute('target', '_blank')
+            repositoryTextElement.appendChild(repositoryAElement)
+
+            for (var key in data) {
+                if (data.hasOwnProperty(key)) {
+                    // Text nodes
+                    const titleText = document.createTextNode(data[key].title)
+                    const idText = document.createTextNode('#' + data[key].id + ' ')
+                    const statusText = document.createTextNode(data[key].state + ' by ')
+                    const createdByText = document.createTextNode(data[key].author.username + ' ')
+                    const numberOfCommentsText = document.createTextNode('with number of comments: ')
+                    const numberOfCommentsCountText = document.createTextNode(data[key].user_notes_count)
+                    const stateText = document.createTextNode(data[key].state)
+
+                    // Avatar
+                    const img = document.createElement('img')
+                    img.classList.add('rounded', 'float-left')
+                    img.setAttribute('src', data[key].author.avatar_url)
+                    img.setAttribute('height', '40')
+                    img.setAttribute('width', '40')
+
+                    // Paragraphs
+                    const p1 = document.createElement('p')
+                    p1.classList.add('media-body', 'pb-3', 'mb-0', 'small', 'lh-125', 'border-bottom', 'border-gray', 'ml-2')
+
+                    // Strong elements
+                    const strong = document.createElement('strong')
+                    const strong2 = document.createElement('strong')
+                    const strong3 = document.createElement('strong')
+                    const br = document.createElement('br')
+
+                    const span = document.createElement('span')
+                    span.classList.add('comments-count')
+                    span.appendChild(numberOfCommentsCountText)
+
+                    const span2 = document.createElement('span')
+
+                    if (data[key].state === 'opened') {
+                        span2.classList.add('badge', 'badge-success')
+                    } else if (data[key].state === 'closed') {
+                        span2.classList.add('badge', 'badge-danger')
+                    } else {
+                        span2.classList.add('badge', 'badge-info')
+                    }
+
+                    span2.classList.add('clearfix', 'ml-1')
+                    span2.appendChild(stateText)
+
+                    strong.classList.add('issue-title', 'text-gray-dark', 'mb-1')
+                    strong2.classList.add('text-gray-dark')
+                    br.classList.add('mb-1')
+
+                    strong.appendChild(titleText)
+                    strong2.appendChild(createdByText)
+
+                    // Appending elements to P element
+                    p1.appendChild(strong)
+                    p1.appendChild(span2)
+                    p1.appendChild(br)
+                    p1.appendChild(idText)
+                    p1.appendChild(statusText)
+                    p1.appendChild(createdByText)
+                    p1.appendChild(numberOfCommentsText)
+                    p1.appendChild(span)
+
+                    // Div
+                    const newDiv = document.createElement('div')
+                    newDiv.id = 'issue-' + data[key].id
+                    newDiv.classList.add('media', 'text-muted', 'pt-3')
+                    newDiv.appendChild(img)
+                    newDiv.appendChild(p1)
+
+                    const issuesDiv = document.getElementById('issues')
+                    issuesDiv.appendChild(newDiv)
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

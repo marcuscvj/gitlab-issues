@@ -1,0 +1,31 @@
+html,
+body {
+  overflow-x: hidden; /* Prevent scroll on narrow devices */
+}
+
+body {
+  padding-top: 30px;
+}
+
+.text-white-50 { color: rgba(255, 255, 255, .5); }
+
+.bg-purple { background-color: #43366B; }
+
+.lh-100 { line-height: 1; }
+.lh-125 { line-height: 1.25; }
+.lh-150 { line-height: 1.5; }
+
+#issues {
+  flex-direction: column;
+  width: 780px;
+}
+
+#notifications {
+  flex-direction: column;
+  width: 220px;
+}
+
+.badge {
+  font-size: 85%;
+  border-radius: .15rem;
+}
