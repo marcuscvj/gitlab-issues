@@ -14,7 +14,7 @@ const createError = require('http-errors')
 require('dotenv').config()
 
 const HOST = process.env.HOST || 'localhost'
-const PORT = process.env.PORT || 8000
+const PORT = process.env.PORT || 3000
 
 const indexRouter = require('./routes/indexRouter')
 const issuesRouter = require('./routes/issuesRouter')
